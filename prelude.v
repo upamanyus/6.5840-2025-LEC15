@@ -2,6 +2,7 @@ From stdpp Require Export prelude.
 From New Require Export proof_prelude.
 Require Export New.code.demo.
 Require Export generatedproof.demo.
+Require Export New.proof.sync.
 
 Global Notation "❴ P ❵ e ❴ x .. y , 'returns' pat ; Q ❵" :=
   (∀ Φ, P -∗ ▷ (∀ x , .. (∀ y , Q -∗ Φ #pat%V) .. ) -∗ WP e {{ Φ }})

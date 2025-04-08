@@ -6,5 +6,5 @@ func foo() int {
 	if x > 0 {
 		return x
 	}
-	panic("unrechable")
+	panic("unreachable")
 }
