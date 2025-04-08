@@ -1,0 +1,31 @@
+-arg -w -arg -ssr-search-moved
+-arg -w -arg +deprecated-instance-without-locality
+# don't allow ambiguous coercions
+-arg -w -arg +ambiguous-paths
+-arg -w -arg +deprecated-hint-rewrite-without-locality
+-arg -w -arg -deprecated-field-instance-without-locality
+-arg -w -arg +deprecated-tactic-notation
+-arg -w -arg -deprecated-since-8.19
+-arg -w -arg -deprecated-since-8.20
+-arg -w -arg -deprecated-since-9.0
+# seems to have false positives
+-arg -w -arg -notation-incompatible-prefix
+# we haven't updated our code to fix this one
+-arg -w -arg -deprecated-typeclasses-transparency-without-locality
+# Iris-disabled warnings
+-arg -w -arg -notation-overridden,-redundant-canonical-projection,-unknown-warning,-argument-scope-delimiter
+
+-Q perennial/src Perennial
+-Q perennial/external/stdpp/stdpp stdpp
+-Q perennial/external/stdpp/stdpp_unstable stdpp.unstable
+-Q perennial/external/stdpp/stdpp_bitvector stdpp.bitvector
+-Q perennial/external/iris/iris iris
+-Q perennial/external/iris/iris_deprecated iris.deprecated
+-Q perennial/external/iris/iris_unstable iris.unstable
+-Q perennial/external/iris/iris_heap_lang iris.heap_lang
+-Q perennial/external/coqutil/src/coqutil coqutil
+-Q perennial/external/Goose Goose
+-Q perennial/external/record-update/src RecordUpdate
+-Q perennial/external/coq-tactical/src Tactical
+-Q perennial/external/iris-named-props/src iris_named_props
+-Q perennial/new New

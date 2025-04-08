@@ -1,0 +1,34 @@
+/build
+/bin
+/doc
+*.lia.cache
+*.nia.cache
+*.nra.cache
+
+# emacs
+*.aux
+*.*~
+
+# vim
+*.swp
+
+# vscode
+/.vscode
+
+# CoqIDE files
+\#*#
+
+# Coq compiled files
+*.vo
+*.vos
+*.vok
+*.v.d
+*.glob
+.coqdeps.d
+
+/.timing.sqlite3
+
+# Python
+__pycache__
+.mypy_cache
+*.pyc

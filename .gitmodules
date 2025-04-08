@@ -1,0 +1,6 @@
+[submodule "raft.tla"]
+	path = raft.tla
+	url = https://github.com/ongardie/raft.tla
+[submodule "perennial"]
+	path = perennial
+	url = https://github.com/mit-pdos/perennial

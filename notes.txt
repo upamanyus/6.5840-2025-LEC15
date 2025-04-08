@@ -1,0 +1,85 @@
+# Distributed systems verification
+Will talk about:
+- what systems verification is and why it's useful
+- verifying Go code
+- invariants, a widely used idea to handle nondeterminism in proofs
+
+## Is my distributed system implementation correct?
+
+Limitations of tests (e.g. `func TestFigure8Unreliable3C`):
+(a) Incomplete client usage (what if clients use more keys than the test?)
+(b) Incomplete coverage of nondeterminism (concurrent interleaving, network
+    unreliability, crashes)
+
+Limitations of paper proof (e.g. Appendix B in
+https://web.stanford.edu/~ouster/cgi-bin/papers/OngaroPhD.pdf)
+(c) Proof could be wrong
+(d) Not connected to Go code
+
+## Systems verification
+Idea: establish correctness by proving "∀" theorems like:
+  Theorem:
+  ∀ interleavings, ∀ network failures, ∀ possible crashes, ...
+  Put/Get behave like they're operating on an abstract key-value map.
+
+Code + Spec + Proof =={mechanized proof checker}==> OK or FAIL
+
+Mechanized proof checkers: include Rocq, Lean, Dafny, F*, Agda, ....
+[ demo: √2 is non-integer ]
+
+Specification: how the program should behave. Many ways of specifying a program;
+here, we will focus on precondition/postcondition style.
+Examples.
+  ❴ is_sorted l ❵ binary_search(l, x) ❴ returns (ok, i); (l[i] = x) ∨ (ok = false) ❵
+  ❴ True ❵ sort(l) ❴ returns l'; is_sorted l' ❵
+  ❴ k ↦ w ❵ Put(k, v) ❴ k ↦ v ❵
+  ❴ k ↦ v ❵ Get(k) ❴ returns v; k ↦ v ❵
+Execution model/semantics describes nondeterminism.
+
+Code: must be formalized for the proof checker.
+
+Trusted Computing Base (TCB): the specification and the proof checker are trusted
+
+Systems verification addresses limitations (a)-(d):
+(a) spec describes general client contract
+(b) spec must hold on all possible executions
+(c) proof is checked by a proof assistant
+(d) code is mechanically translated into the formal language
+
+Active research driven by new theory and new tools.
+
+Systems verification in industry:
+TLA+: high-level modeling language, not a programming language.
+Used by AWS and others
+https://www.amazon.science/publications/how-amazon-web-services-uses-formal-methods
+
+## Grove
+Key theme: local reasoning
+
+Goose translates Go code to a formal representation in Rocq.
+
+Trusted Computing Base (TCB):
+  rocq, goose.go, formal semantics for Golang, specification
+
+Reasoning about Go code.
+Ownership of resources:
+  propositions denote ownership in addition to mathematical assertions.
+  x ↦ v represents ownership of x and that address x currently has value v.
+  Related to Rust's linear types.
+
+Concurrency:
+  ownership is thread-local
+
+## Invariants
+Key verification technique.
+Invariants are typically proved inductively:
+ If the invariant holds on the previous state of the system, the invariant will
+ still hold on the next state.
+
+Loop invariant for bsearch.
+
+Mutex invariant for raft.
+
+Invariant for transaction.
+Bank:
+ - Ghost state.
