@@ -9,17 +9,3 @@ Proof.
   { lia. }
   lia.
 Qed.
-
-Section proof.
-Context `{hG: heapGS Σ, !ffi_semantics _ _}.
-
-Lemma boring_spec :
-  ❴ True ❵
-    #() ;; #(W64 10)
-  ❴ returns (W64 10); True ❵.
-Proof.
-  wp_start as "Hpre".
-  wp_auto. iApply "HΦ". done.
-Qed.
-
-End proof.

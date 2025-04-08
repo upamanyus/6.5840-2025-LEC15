@@ -43,17 +43,16 @@ endif
 
 .PHONY: update-submodules
 update-submodules:
-	@if [ -d .git/ ] && git submodule status | egrep -q '^[-+]' ; then \
+	@if [ -d .git/ ] && git submodule status | grep -E -q '^[-+]' ; then \
 		echo "INFO: Updating git submodules"; \
 		git submodule update --init --recursive; \
   fi
 
 .PHONY: goose
 goose:
-	cd ../goose
-	go run ./cmd/goose -dir ../demo/code -out ../demo/generatedcode
-	go run ./cmd/proofgen -dir ../demo/code -configdir ../demo/generatedcode -out ../demo/generatedproof
-	cd -
+	cd ../goose && go run ./cmd/goose -dir ../demo/code -out ../demo/generatedcode demo
+	cd ../goose && go run ./cmd/proofgen -dir ../demo/code -configdir ../demo/generatedcode -out ../demo/generatedproof demo
+	pwd
 
 clean:
 	@echo "CLEAN vo glob aux"
