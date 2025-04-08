@@ -1,0 +1,7 @@
+
+Definition is_vote_invariant := inv (
+  for all term numbers t,
+    ∃ (W : set ServerName),
+      n < 2 * (size W) ∧
+      (own_vote_tok t for every s ∈ W) ∨ own_leader_resources t
+.

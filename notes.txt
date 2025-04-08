@@ -1,11 +1,13 @@
-# Distributed systems verification
+DISTRIBUTED SYSTEMS VERIFICATION
+
 Will talk about:
 - what systems verification is and why it's useful
 - verifying Go code
 - invariants, a widely used idea to handle nondeterminism in proofs
 
-## Is my distributed system implementation correct?
-
+================================================
+Is my distributed system implementation correct?
+================================================
 Limitations of tests (e.g. `func TestFigure8Unreliable3C`):
 (a) Incomplete client usage (what if clients use more keys than the test?)
 (b) Incomplete coverage of nondeterminism (concurrent interleaving, network
@@ -16,7 +18,9 @@ https://web.stanford.edu/~ouster/cgi-bin/papers/OngaroPhD.pdf)
 (c) Proof could be wrong
 (d) Not connected to Go code
 
-## Systems verification
+====================
+Systems verification
+====================
 Idea: establish correctness by proving "∀" theorems like:
   Theorem:
   ∀ interleavings, ∀ network failures, ∀ possible crashes, ...
@@ -28,17 +32,19 @@ Mechanized proof checkers: include Rocq, Lean, Dafny, F*, Agda, ....
 [ demo: √2 is non-integer ]
 
 Specification: how the program should behave. Many ways of specifying a program;
-here, we will focus on precondition/postcondition style.
+here, we will focus on precondition/postcondition style. These do not guarantee
+liveness, but rather describe what's true when the function returns.
 Examples.
-  ❴ is_sorted l ❵ binary_search(l, x) ❴ returns (ok, i); (l[i] = x) ∨ (ok = false) ❵
+  ❴ is_sorted l ❵ BinarySearch(l, x) ❴ returns (ok, i); (l[i] = x) ∨ (ok = false) ❵
   ❴ True ❵ sort(l) ❴ returns l'; is_sorted l' ❵
   ❴ k ↦ w ❵ Put(k, v) ❴ k ↦ v ❵
   ❴ k ↦ v ❵ Get(k) ❴ returns v; k ↦ v ❵
 Execution model/semantics describes nondeterminism.
 
-Code: must be formalized for the proof checker.
+Trusted Computing Base (TCB): the specification and the proof checker are trusted.
+Q: are the specs above good enough?
 
-Trusted Computing Base (TCB): the specification and the proof checker are trusted
+Code: must be formalized for the proof checker.
 
 Systems verification addresses limitations (a)-(d):
 (a) spec describes general client contract
@@ -52,34 +58,88 @@ Systems verification in industry:
 TLA+: high-level modeling language, not a programming language.
 Used by AWS and others
 https://www.amazon.science/publications/how-amazon-web-services-uses-formal-methods
+[ demo: raft.tla ]
 
-## Grove
+=======
+Grove
+=======
 Key theme: local reasoning
 
 Goose translates Go code to a formal representation in Rocq.
+[ diagram of Goose ]
 
 Trusted Computing Base (TCB):
   rocq, goose.go, formal semantics for Golang, specification
 
-Reasoning about Go code.
-Ownership of resources:
+Concurrent Separation Logic (CSL):
   propositions denote ownership in addition to mathematical assertions.
-  x ↦ v represents ownership of x and that address x currently has value v.
-  Related to Rust's linear types.
+  x ↦ v represents ownership of x and that address x currently stores value v.
+  (Conceptually similar to idea of ownership in Rust.)
 
-Concurrency:
-  ownership is thread-local
+Example:
+  x += 1  |   y = 10
+  x = 3   |   ...
+  Takeaway: ownership is thread-local
 
-## Invariants
+[ demo: proofs ]
+[ demo: lang ]
+
+Q: is the Get/Put spec good enough?
+Doesn't cover linearizability: a more advanced CSL spec covers this.
+Doesn't cover liveness: theoretical questions on this.
+A challenge: local reasoning while preventing circularity.
+for x == 0 {}
+y = 1
+
+for y == 0 {}
+x = 1
+
+
+==========
+Invariants
+==========
 Key verification technique.
 Invariants are typically proved inductively:
  If the invariant holds on the previous state of the system, the invariant will
  still hold on the next state.
 
-Loop invariant for bsearch.
+Loop invariant for BinarySearch.
+  [demo: search.go]
+  value either in the current low-high range or not in list
 
-Mutex invariant for raft.
+Invariant for MapReduce.
+  If reducer is executing, then all mappers are done.
 
-Invariant for transaction.
-Bank:
- - Ghost state.
+In Grove, invariants own resources. E.g. Mutex invariant owns currentTerm
+points-to resource.
+
+Invariant for Raft.
+  [see Figure 3 of https://raft.github.io/raft.pdf]
+  E.g. election safety is not inductive on its own.
+  [leaderelection.txt]
+  See `is_vote_inv` from protocol_proof.v
+  Definition is_vote_invariant := inv (
+    for all term numbers t,
+    (∃ (W : set ServerName), ⌜ 2 * (size W) > n ⌝ ∗
+        (own_vote_tok t for every s ∈ W) ∨ own_leader_resources t
+  ).
+
+Invariant for bank.
+[ transfer_internal ]
+
+Doesn't work:
+❴ True ❵ lock(k) ❴ ∃ v, k ↦ v ❵
+
+How do we know that the values of all the keys add up to the constant?
+
+Trick: ghost state. An extra proof-only copy of the key-value state that is
+slightly out-of-sync from the phyiscal kv map.
+
+invariant (
+  ∃ va vb,
+  ghost_A ↦{1/2} va ∗
+  ghost_B ↦{1/2} vb ∗
+  (va + vb = CONSTANT_TOTAL)
+)
+
+❴ True ❵ lock(k) ❴ ∃ v, k ↦ v ∗ ghost_k ↦{1/2} v ❵
